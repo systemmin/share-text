@@ -22,7 +22,7 @@ SQLite 数据库。
 
 - Window：
 
-  [releases](https://github.com/systemmin/share-text/) 页面下载，双击 exe 文件或命令行启动。
+  [releases](https://github.com/systemmin/share-text/releases) 页面下载，双击 exe 文件或命令行启动。
 
     ```bash
     ./share-text.exe
@@ -30,7 +30,7 @@ SQLite 数据库。
 
 - Linux：
 
-  [releases](https://github.com/systemmin/share-text/) 页面下载，需要添加可执行权限。
+  [releases](https://github.com/systemmin/share-text/releases) 页面下载，需要添加可执行权限。
 
    ```bash
    chmoc +x share-text
