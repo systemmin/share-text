@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共享剪贴板 | Share-Text</title>
+    <meta name="description" content="Share-Text 是一款基于 Web 的共享剪切板内容服务，旨在为相同公网 IP 或局域网内的设备提供文本内容共享功能。支持加密共享，阅后即焚，且所有共享内容将在 10 分钟后自动删除。该项目使用 Go 开发，数据存储使用 SQLite 数据库。">
+    <meta name="keywords" content="公网和局域网共享, 加密共享, 阅后即焚, 自动过期, 局域网共享, sqlite">
+    <link rel="icon" type="image/png" size="32" href="logo.png">
+    <style>
+        body{font-family:sans-serif;padding:0.5rem;background:#f7f7f7}.container{max-width:600px;margin:auto}textarea,input,button{width:100%;margin-top:0.5rem;padding:0.8rem;border-radius:5px;border:1px solid #ccc;box-sizing:border-box}.entry{background:white;margin-top:1rem;padding:1rem;border-radius:5px;box-shadow:0 2px 4px rgba(0,0,0,0.1);white-space:pre-wrap;word-break:break-word}.msg{color:green;font-weight:bold;margin-top:0.5rem}#encrypt{width:20px}img{vertical-align:top}h1{font-size:1.5em}#tips{font-size:14px;color:#00be44}::selection{background-color:#ffcc00;color:#333}::-moz-selection{background-color:#ffcc00;color:#333}::-webkit-selection{background-color:#ffcc00;color:#333}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>
+        <img src="logo.png" alt="共享剪贴板"/>
+        <span>共享剪贴板</span>
+    </h1>
+    <form action="#" id="form1">
+        <textarea id="text" required rows="4" title="输入要共享的内容" placeholder="输入要共享的内容..." maxlength="499"></textarea>
+        <label><input type="checkbox" id="encrypt"> 加密分享（只能取一次，阅后即焚）</label>
+        <button>添加内容</button>
+    </form>
+    <div id="pickupCode" class="msg"></div>
+    <hr/>
+
+    <h3>获取加密内容</h3>
+    <form action="#" id="form2">
+        <input type="text" required id="pickupInput" autocomplete="off" placeholder="请输入取件码" minlength="4"/>
+        <button>查看</button>
+    </form>
+    <div id="pickupResult" class="entry"></div>
+
+    <hr/>
+
+    <h3>公共区域（10 分钟后删除）<span id="tips">点击复制</span></h3>
+
+    <div id="entries"></div>
+</div>
+
+<script>
+    async function writeClipboardText(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch (error) {
+            console.error(error.message);
+        }
+    }
+
+    function selectionElement(current) {
+        const range = document.createRange();
+        range.selectNodeContents(current);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    async function submit() {
+        const text = document.getElementById("text").value.trim();
+        const encrypt = document.getElementById("encrypt").checked;
+        const payload = {
+            content: text,
+            encrypt: encrypt
+        };
+
+        const res = await fetch(`content`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.success) {
+            document.getElementById("text").value = "";
+            document.getElementById("encrypt").checked = false;
+            document.getElementById("pickupCode").innerText = "";
+
+            if (encrypt && result.data?.pass) {
+                document.getElementById("pickupCode").innerText = `取件码：${result.data.pass}`;
+            }
+        } else {
+            alert(result.msg)
+        }
+        loadEntries();
+    }
+
+    async function loadEntries() {
+        const res = await fetch(`content`);
+        const result = await res.json();
+        const list = result.data || [];
+        const container = document.getElementById("entries");
+        container.innerHTML = "";
+
+        list.forEach(entry => {
+            const div = document.createElement("div");
+            div.className = "entry";
+            div.innerText = entry.content;
+            div.onclick = function () {
+                writeClipboardText(this.innerText)
+                selectionElement(this)
+            }
+            container.appendChild(div);
+        });
+    }
+
+    async function fetchByPickup() {
+        const code = document.getElementById("pickupInput").value.trim();
+        const res = await fetch(`content?pass=${encodeURIComponent(code)}`);
+        const result = await res.json();
+        if (result.success && result.data) {
+            const content = result.data.content;
+            document.getElementById("pickupResult").innerText = content;
+        } else {
+            document.getElementById("pickupResult").innerText = "未找到对应内容或取件码错误";
+        }
+    }
+
+    loadEntries();
+
+    document.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        let id = event.target.id;
+        if ("form1" === id) {
+            await submit()
+        } else {
+            await fetchByPickup()
+        }
+    })
+
+</script>
+</body>
+</html>
