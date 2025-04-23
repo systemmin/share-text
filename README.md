@@ -53,3 +53,6 @@ Usage of share-text:
 ## 示例
 
 [演示地址](https://dtking.cn/share/)
+
+
+![share-text](https://raw.githubusercontent.com/systemmin/share-text/refs/heads/master/images/share-text.png)
