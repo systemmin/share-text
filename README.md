@@ -35,6 +35,8 @@ SQLite 数据库。
    ```bash
    chmoc +x share-text
    ./share-text
+   # 后台运行
+   nohup ./share-text &
    ```
 
 **备注**：其他平台自行编译
