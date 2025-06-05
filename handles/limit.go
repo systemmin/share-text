@@ -28,6 +28,8 @@ func LastLimit(limit models.Limit) models.Limit {
 
 // CreateLimit 添加限制
 func CreateLimit(limit models.Limit) int64 {
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 	res, err := database.DB.Exec("INSERT INTO `limits` (api_address, ip,  method_text , create_time ) VALUES (?, ?,?,?)", limit.APIAddress, limit.IP, limit.MethodText, limit.CreateTime)
 	if err != nil {
 		fmt.Println(err)
