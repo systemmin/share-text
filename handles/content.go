@@ -12,8 +12,11 @@ import (
 	"fmt"
 	"share-text/database"
 	"share-text/models"
+	"sync"
 	"time"
 )
+
+var dbMutex sync.Mutex
 
 // GetContents 获取当前 ip 内容
 func GetContents(ip string) ([]models.Content, error) {
@@ -53,6 +56,8 @@ func GetContent(pass string) (models.Content, error) {
 
 // CreateContent 创建内容
 func CreateContent(content models.Content) int64 {
+	dbMutex.Lock()
+	defer dbMutex.Unlock()
 	db := database.DB
 	res, _ := db.Exec("INSERT INTO `contents` (`content`, ip,  `password` , expire_time , create_time) VALUES (?, ?,?,?,?)", content.Content, content.IP, content.Password, content.ExpireTime, content.CreateTime)
 	id, _ := res.LastInsertId()

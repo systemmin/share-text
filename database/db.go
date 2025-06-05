@@ -11,6 +11,7 @@ package database
 import (
 	"database/sql"
 	"log"
+
 	_ "modernc.org/sqlite"
 )
 
@@ -26,8 +27,8 @@ func InitDB() {
 	}
 
 	// 配置连接池参数
-	//DB.SetMaxOpenConns(100)                // 设置最大打开连接数
-	//DB.SetMaxIdleConns(20)                 // 设置最大空闲连接数
+	DB.SetMaxOpenConns(1) // 设置最大打开连接数
+	DB.SetMaxIdleConns(1) // 设置最大空闲连接数
 	//DB.SetConnMaxLifetime(5 * time.Minute) // 设置连接的最大生命周期
 
 	// 测试连接
